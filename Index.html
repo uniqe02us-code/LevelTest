@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>آزمون زبان انگلیسی | Firebase (Anonymous Auth)</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+  <style>body{font-family:'Vazirmatn','Segoe UI',sans-serif} .note{background:#fff3cd;border:1px solid #ffeeba;padding:10px;border-radius:8px;margin:10px 0}</style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body style="padding:24px">
+  <div class="note">⚙️ در فایل، مقادیر <b>apiKey</b>، <b>authDomain</b>، <b>projectId</b>، <b>storageBucket</b>، <b>messagingSenderId</b>، <b>appId</b> را جایگزین کن. <br>databaseURL از روی اسکرین‌شات شما پر شده است.</div>
+  <button onclick="startTest()">شروع آزمون 🌼</button>
+  <div id="result" class="note">نتیجه بعد از اتمام آزمون نمایش داده می‌شود.</div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "REPLACE_ME",
+      authDomain: "REPLACE_ME",
+      databaseURL: "https://fashenglishtest-default-rtdb.firebaseio.com",
+      projectId: "REPLACE_ME",
+      storageBucket: "REPLACE_ME",
+      messagingSenderId: "REPLACE_ME",
+      appId: "REPLACE_ME"
+    };
+
+    let firebaseReady=false;
+    try{
+      firebase.initializeApp(firebaseConfig);
+      firebase.auth().onAuthStateChanged(u=>{
+        if(u){ firebaseReady=true; console.log("✅ Signed in"); }
+        else { firebase.auth().signInAnonymously().catch(e=>console.warn("Auth error:", e.message)); }
+      });
+    }catch(e){ console.error("init failed", e); }
+
+    const questions=[
+      { text: "?What is the opposite of 'happy'", options: ["Angry","Sad","Tired","Busy"], correct: 1 },
+      { text: ":Choose the correct sentence", options: [".She go to school",".She goes to school",".She going to school",".She gone to school"], correct: 1 },
+      { text: "?What does 'delicious' mean", options: ["Boring","Expensive","Tasty","Cold"], correct: 2 },
+      { text: ".If I _____ you, I would study harder", options: ["am","was","were","be"], correct: 2 },
+      { text: "Which sentence is in the past ? perfect tense", options: [".I have eaten",".I ate",".I had eaten",".I will have eaten"], correct: 2 },
+      { text: "'.He has been working here _____ 2015'", options: ["for","since","from","in"], correct: 1 },
+      { text: "?What is a synonym for 'exhausted'", options: ["Excited","Very tired","Happy","Angry"], correct: 1 },
+      { text: ":Choose the correct passive sentence", options: [".The book wrote by her",".The book was written by her",".The book is wrote by her",".She was written the book"], correct: 1 },
+      { text: "'.Despite _____ tired, she finished her homework'", options: ["of being","being","she was","to be"], correct: 1 },
+      { text: "?What does 'ambiguous' mean", options: ["Very clear","Unclear or having more than one meaning","Angry","Expensive"], correct: 1 }
+    ];
+
+    async function startTest(){
+      // شبیه‌سازی اتمام آزمون برای تست آمار
+      let score=0;
+      for (let i=0;i<questions.length;i++){ score += (questions[i].correct===1)?1:0; }
+      document.getElementById('result').textContent = "امتیاز تستی: "+score;
+      if(firebaseReady){ await updateStatsWithFirebase(); }
+      else { document.getElementById('result').textContent += " | آمار غیرفعال است."; }
+    }
+
+    async function updateStatsWithFirebase(){
+      try{
+        const ref = firebase.database().ref('counter');
+        await ref.transaction(cur=>(cur||0)+1);
+        const snap = await ref.once('value');
+        const count = snap.val()||0;
+        document.getElementById('result').textContent += " | شمارنده: "+count;
+      }catch(e){
+        document.getElementById('result').textContent += " | خطای آمار";
+        console.error(e);
+      }
+    }
+  </script>
+</body>
+</html>
