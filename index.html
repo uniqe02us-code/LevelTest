@@ -3,45 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>آزمون زبان انگلیسی | Firebase (Anonymous Auth)</title>
+  <title>آزمون زبان انگلیسی | پاسخ‌نامه در صفحهٔ جدا + Firebase</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-  <style>body{font-family:'Vazirmatn','Segoe UI',sans-serif} .note{background:#fff3cd;border:1px solid #ffeeba;padding:10px;border-radius:8px;margin:10px 0}</style>
+  <style>
+    :root{
+      --bg1:#e6f4f7; --bg2:#eee8f7;
+      --card:#ffffff;
+      --text:#1f2a37; --muted:#64748b;
+      --brand1:#6a5acd; --brand2:#8a7bf0;
+      --option:#f7f8ff; --option-hover:#eef2ff; --option-selected:#f0f4ff;
+      --shadow: 0 30px 80px rgba(21, 29, 63, .18);
+      --border: rgba(106,90,205,.12);
+      --ok:#10b981; --err:#ef4444;
+      --overlay: rgba(15,23,42,.45);
+    }
+    body.dark{
+      --bg1:#0f172a; --bg2:#1f2340;
+      --card:rgba(26, 30, 56, .9);
+      --text:#eef2ff; --muted:#c7cbe1;
+      --brand1:#7a87ff; --brand2:#a3adff;
+      --option:rgba(255,255,255,.06); --option-hover:rgba(255,255,255,.10); --option-selected:rgba(255,255,255,.14);
+      --shadow: 0 24px 60px rgba(0,0,0,.55);
+      --border: rgba(255,255,255,.10);
+      --overlay: rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Vazirmatn','Segoe UI',system-ui;
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      color:var(--text);
+      background: radial-gradient(1400px 700px at -10% -10%, var(--bg1), transparent 60%),
+                  radial-gradient(1400px 700px at 110% 110%, var(--bg2), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      position:relative; overflow-x:hidden; padding:24px;
+    }
+    body.no-scroll{ overflow:hidden }
+    .toggle{ position:absolute; top:20px; right:20px; z-index:3; width:52px; height:52px; border-radius:50%;
+      display:grid; place-items:center; cursor:pointer; background:#fff; color:#111;
+      border:1px solid rgba(0,0,0,.06); box-shadow:0 12px 30px rgba(0,0,0,.12); transition:transform .18s ease }
+    body.dark .toggle{ background:rgba(255,255,255,.12); color:#fff; border-color:var(--border) }
+    .toggle:hover{ transform: translateY(-2px) }
+    #appWrap.blurred{ filter: blur(6px) saturate(0.95) brightness(0.95); pointer-events:none; user-select:none }
+    .card{ max-width: 880px; width: 96vw; background: var(--card); border: 1px solid var(--border);
+      border-radius: 36px; box-shadow: var(--shadow); padding: 42px 36px; text-align:center; animation:cardIn .5s cubic-bezier(.22,1,.36,1) }
+    @keyframes cardIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+    .icon{font-size:52px;margin-bottom:10px}
+    h1{ font-weight:900; letter-spacing:-.3px; margin:10px 0 8px; font-size:34px }
+    p.lead{ color:var(--muted); font-size:16px; line-height:1.9; margin-bottom:18px }
+    .btn{ --c1:var(--brand1); --c2:var(--brand2); border:none; color:#fff; font-weight:800; cursor:pointer;
+      background: linear-gradient(90deg, var(--c1), var(--c2)); padding:14px 32px; border-radius:16px; font-size:16px;
+      box-shadow: 0 14px 30px rgba(106,90,205,.35); transition: transform .14s ease, box-shadow .14s ease, filter .14s ease }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03) }
+    .btn:active{ transform: translateY(1px); box-shadow: 0 10px 22px rgba(106,90,205,.25) }
+    .btn.alt{ --c1:#6366f1; --c2:#06b6d4 }
+    .screen{ display:none } .screen.active{ display:block }
+    .progress{ display:flex; align-items:center; gap:10px; margin:12px 0 16px }
+    .bar{ flex:1; height:8px; background: rgba(0,0,0,.06); border-radius:999px; overflow:hidden }
+    .fill{ width:0%; height:100%; background: linear-gradient(90deg, var(--brand1), var(--brand2)); transition: width .35s ease }
+    .count{ min-width:90px; font-size:12px; color:var(--muted) }
+    .question{ font-size:20px; margin-bottom:14px }
+    .options{ display:grid; gap:12px; text-align:right }
+    .option{ background: var(--option); padding:14px 16px; border-radius:18px; border:2px solid transparent; cursor:pointer; transition: all .18s ease }
+    .option:hover{ background: var(--option-hover); transform: translateY(-1px) }
+    .option.selected{ background: var(--option-selected); border-color: var(--brand1); box-shadow: 0 10px 24px rgba(106,90,205,.15) }
+    .pill{ display:inline-block; margin-top:8px; padding:8px 20px; border-radius:999px; color:#fff; font-weight:900;
+           background: linear-gradient(90deg, #0ea5e9, #8b5cf6); box-shadow: 0 12px 28px rgba(139,92,246,.35) }
+    .muted{ color:var(--muted) }
+    #confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
+
+    /* MODAL (Answer Key) */
+    .modal-wrap{ position:fixed; inset:0; z-index:4; display:none; align-items:center; justify-content:center; }
+    .modal-wrap.open{ display:flex; }
+    .backdrop{ position:absolute; inset:0; background: var(--overlay); backdrop-filter: blur(8px) saturate(1.1); opacity:0; animation:fIn .18s ease forwards }
+    @keyframes fIn{ to{ opacity:1 } }
+    .modal{ position:relative; width:min(94vw, 980px); background:var(--card); border:1px solid var(--border); border-radius:28px; box-shadow: var(--shadow); overflow:hidden; transform: translateY(8px); animation: pop .25s ease forwards }
+    @keyframes pop{ to{ transform: translateY(0) } }
+    .modal header{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border) }
+    .modal h3{ font-size:18px; font-weight:900 }
+    .close{ background:transparent; border:1px solid var(--border); border-radius:12px; padding:8px 12px; cursor:pointer; color:var(--text) }
+    .modal .body{ max-height: min(78vh, 680px); overflow-y:auto; padding:14px 18px }
+    /* scrollbar */
+    .modal .body::-webkit-scrollbar{ width:10px }
+    .modal .body::-webkit-scrollbar-thumb{ background: linear-gradient(180deg,var(--brand1),var(--brand2)); border-radius:999px }
+    .ak-item{ background: var(--option); border:1px solid var(--border); border-radius:16px; padding:12px; margin:10px 0 }
+    .ak-q{ font-weight:800; margin-bottom:6px }
+    .chips{ display:flex; flex-wrap:wrap; gap:6px }
+    .chip{ display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--border) }
+    .ok-chip{ background: rgba(16,185,129,.14); color:#c3f7d9; border-color: rgba(16,185,129,.35) }
+    .err-chip{ background: rgba(239,68,68,.16); color:#ffd3d3; border-color: rgba(239,68,68,.35) }
+    body:not(.dark) .ok-chip{ color:#065f46 }
+    body:not(.dark) .err-chip{ color:#991b1b }
+  </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
-<body style="padding:24px">
-  <div class="note">⚙️ در فایل، مقادیر <b>apiKey</b>، <b>authDomain</b>، <b>projectId</b>، <b>storageBucket</b>، <b>messagingSenderId</b>، <b>appId</b> را جایگزین کن. <br>databaseURL از روی اسکرین‌شات شما پر شده است.</div>
-  <button onclick="startTest()">شروع آزمون 🌼</button>
-  <div id="result" class="note">نتیجه بعد از اتمام آزمون نمایش داده می‌شود.</div>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <div id="appWrap">
+    <button class="toggle" id="themeToggle" title="تغییر تم" aria-label="تغییر تم">🌞</button>
+
+    <!-- WELCOME -->
+    <section id="welcome" class="card screen active" aria-live="polite">
+      <div class="icon" aria-hidden="true">📚</div>
+      <h1>به آزمون زبان انگلیسی خوش آمدید!</h1>
+      <p class="lead">در این فضای آرام، سطح زبان خود را کشف کنید.<br>۱۰ سؤال هوشمندانه — بدون استرس، با لذت.</p>
+      <button class="btn" id="startBtn">🌸 شروع آزمون</button>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="card screen" aria-live="polite">
+      <div class="progress">
+        <div class="bar"><div class="fill" id="barFill"></div></div>
+        <div class="count">سؤال <span id="current">1</span> / 10</div>
+      </div>
+      <div class="question" id="question-text">...</div>
+      <div class="options" id="options"></div>
+      <div style="margin-top:14px; display:flex; justify-content:flex-end">
+        <button class="btn" id="nextBtn" disabled>بعدی ➝</button>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="result" class="card screen" aria-live="polite">
+      <div class="icon" aria-hidden="true">✨</div>
+      <h1>آزمون به پایان رسید!</h1>
+      <p class="lead" id="result-text">در حال محاسبه...</p>
+      <div id="level-display" style="margin-bottom:6px"></div>
+      <p class="muted" id="stats">در حال آماده‌سازی آمار...</p>
+      <div style="margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap">
+        <button class="btn alt" id="answerKeyBtn">📄 پاسخ‌نامه</button>
+        <button class="btn" id="restartBtn">🔁 آزمون دوباره</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL Answer Key -->
+  <div class="modal-wrap" id="akModal" aria-hidden="true" role="dialog" aria-labelledby="akTitle">
+    <div class="backdrop" id="akBackdrop"></div>
+    <div class="modal" role="document" aria-modal="true">
+      <header>
+        <h3 id="akTitle">پاسخ‌نامه آزمون</h3>
+        <button class="close" id="akClose" aria-label="بستن">✕</button>
+      </header>
+      <div class="body" id="akBody">
+        <div id="akItems"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBcRxeCvCKQ9IJdjfh7V6NNNkymyAtMwp0",
-  authDomain: "fashenglishtest.firebaseapp.com",
-  databaseURL: "https://fashenglishtest-default-rtdb.firebaseio.com",
-  projectId: "fashenglishtest",
-  storageBucket: "fashenglishtest.firebasestorage.app",
-  messagingSenderId: "142726893273",
-  appId: "1:142726893273:web:e8cb4f4982b20065d2f8c8",
-  measurementId: "G-EZMBRCJFM6"
-    };
+    // Theme
+    const toggle=document.getElementById('themeToggle');
+    function applyTheme(){ const saved=localStorage.getItem('theme')||'light'; document.body.classList.toggle('dark', saved==='dark'); toggle.textContent = saved==='dark'?'🌙':'🌞'; }
+    toggle.onclick=()=>{ const isDark=document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark?'dark':'light'); applyTheme(); };
+    applyTheme();
 
+    // Firebase
+    const firebaseConfig={
+      apiKey:"AIzaSyBcRxeCvCKQ9IJdjfh7V6NNNkymyAtMwp0",
+      authDomain:"fashenglishtest.firebaseapp.com",
+      databaseURL:"https://fashenglishtest-default-rtdb.firebaseio.com",
+      projectId:"fashenglishtest",
+      storageBucket:"fashenglishtest.firebasestorage.app",
+      messagingSenderId:"142726893273",
+      appId:"1:142726893273:web:e8cb4f4982b20065d2f8c8"
+    };
     let firebaseReady=false;
     try{
-      firebase.initializeApp(firebaseConfig);
+      if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
       firebase.auth().onAuthStateChanged(u=>{
-        if(u){ firebaseReady=true; console.log("✅ Signed in"); }
-        else { firebase.auth().signInAnonymously().catch(e=>console.warn("Auth error:", e.message)); }
+        if(u){ firebaseReady=true; }
+        else { firebase.auth().signInAnonymously().catch(console.warn); }
       });
-    }catch(e){ console.error("init failed", e); }
+    }catch(e){ console.warn('Firebase init error', e); }
 
+    // Confetti
+    const cvs=document.getElementById('confetti'), ctx=cvs.getContext('2d');
+    function resize(){ cvs.width=innerWidth; cvs.height=innerHeight; } resize(); addEventListener('resize', resize);
+    function confetti(n=140){ const p=[]; for(let i=0;i<n;i++) p.push({x:Math.random()*cvs.width,y:-20-Math.random()*cvs.height,s:2+Math.random()*4,a:Math.random()*360,v:1.8+Math.random()*2.7,c:`hsl(${Math.random()*360},86%,62%)`}); let t=0; (function anim(){ t++; ctx.clearRect(0,0,cvs.width,cvs.height); p.forEach(o=>{ o.y+=o.v; o.a+=4; const r=o.s; ctx.save(); ctx.translate(o.x,o.y); ctx.rotate(o.a*Math.PI/180); ctx.fillStyle=o.c; ctx.fillRect(-r,-r,r*2,r*2); ctx.restore(); }); if(t<420) requestAnimationFrame(anim); else ctx.clearRect(0,0,cvs.width,cvs.height); })(); }
+
+    // Quiz logic
     const questions=[
       { text: "?What is the opposite of 'happy'", options: ["Angry","Sad","Tired","Busy"], correct: 1 },
       { text: ":Choose the correct sentence", options: [".She go to school",".She goes to school",".She going to school",".She gone to school"], correct: 1 },
       { text: "?What does 'delicious' mean", options: ["Boring","Expensive","Tasty","Cold"], correct: 2 },
       { text: ".If I _____ you, I would study harder", options: ["am","was","were","be"], correct: 2 },
-      { text: "Which sentence is in the past ? perfect tense", options: [".I have eaten",".I ate",".I had eaten",".I will have eaten"], correct: 2 },
+      { text: "?Which sentence is in the past perfect tense", options: [".I have eaten",".I ate",".I had eaten",".I will have eaten"], correct: 2 },
       { text: "'.He has been working here _____ 2015'", options: ["for","since","from","in"], correct: 1 },
       { text: "?What is a synonym for 'exhausted'", options: ["Excited","Very tired","Happy","Angry"], correct: 1 },
       { text: ":Choose the correct passive sentence", options: [".The book wrote by her",".The book was written by her",".The book is wrote by her",".She was written the book"], correct: 1 },
@@ -49,25 +198,150 @@
       { text: "?What does 'ambiguous' mean", options: ["Very clear","Unclear or having more than one meaning","Angry","Expensive"], correct: 1 }
     ];
 
-    async function startTest(){
-      // شبیه‌سازی اتمام آزمون برای تست آمار
-      let score=0;
-      for (let i=0;i<questions.length;i++){ score += (questions[i].correct===1)?1:0; }
-      document.getElementById('result').textContent = "امتیاز تستی: "+score;
-      if(firebaseReady){ await updateStatsWithFirebase(); }
-      else { document.getElementById('result').textContent += " | آمار غیرفعال است."; }
+    const startBtn=document.getElementById('startBtn');
+    const nextBtn=document.getElementById('nextBtn');
+    const restartBtn=document.getElementById('restartBtn');
+    const barFill=document.getElementById('barFill');
+    const answerKeyBtn=document.getElementById('answerKeyBtn');
+    const appWrap=document.getElementById('appWrap');
+
+    // Modal refs
+    const modal=document.getElementById('akModal');
+    const modalBody=document.getElementById('akBody');
+    const modalItems=document.getElementById('akItems');
+    const modalClose=document.getElementById('akClose');
+    const modalBackdrop=document.getElementById('akBackdrop');
+
+    let current=0; let answers=new Array(questions.length).fill(null);
+    let waitStats=false; let finished=false; let navBusy=false;
+
+    function show(id){
+      ['welcome','quiz','result'].forEach(s=>document.getElementById(s).classList.remove('active'));
+      const el=document.getElementById(id); el.classList.add('active');
+      el.style.animation='none'; void el.offsetWidth; el.style.animation=null;
     }
 
-    async function updateStatsWithFirebase(){
+    function resetForNewRun(){
+      current=0; answers.fill(null); finished=false; waitStats=false; navBusy=false;
+      barFill.style.width='0%';
+      closeAK(); // ensure modal closed
+    }
+
+    startBtn.onclick=()=>{ resetForNewRun(); show('quiz'); loadQ(); };
+    restartBtn.onclick=()=>{ resetForNewRun(); show('welcome'); };
+
+    function loadQ(){
+      const q=questions[current];
+      document.getElementById('question-text').textContent=q.text;
+      document.getElementById('current').textContent=current+1;
+      barFill.style.width=(current/questions.length*100)+'%';
+      const box=document.getElementById('options'); box.innerHTML='';
+      q.options.forEach((opt,i)=>{
+        const el=document.createElement('div'); el.className='option'; el.textContent=opt;
+        if(answers[current]===i) el.classList.add('selected');
+        el.onclick=()=>{
+          if(navBusy) return;
+          answers[current]=i;
+          document.querySelectorAll('.option').forEach((x,j)=>x.classList.toggle('selected', j===i));
+          nextBtn.disabled=false;
+        };
+        box.appendChild(el);
+      });
+      nextBtn.disabled = answers[current]===null;
+    }
+
+    nextBtn.onclick=()=>{
+      if(navBusy) return; navBusy=true; nextBtn.disabled=true;
+      setTimeout(()=>{
+        if(current<questions.length-1){ current++; loadQ(); navBusy=false; }
+        else { finish(); }
+      }, 50);
+    };
+
+    function levelFrom(score){
+      if(score<=3) return "A1 (مبتدی)";
+      if(score<=5) return "A2 (پایه)";
+      if(score<=7) return "B1 (متوسط)";
+      if(score<=9) return "B2 (بالاتر از متوسط)";
+      return "C1 (پیشرفته)";
+    }
+
+    async function finish(){
+      if(finished) return; finished=true;
+      let score=0; for(let i=0;i<questions.length;i++){ if(answers[i]===questions[i].correct) score++; }
+      document.getElementById('result-text').innerHTML=`امتیاز شما: <b>${score}</b> از 10`;
+      document.getElementById('level-display').innerHTML=`<span class="pill">${levelFrom(score)}</span>`;
+      barFill.style.width='100%'; show('result'); confetti();
+      if(await waitAuth()){ updateStats(); } else { waitStats=true; document.getElementById('stats').textContent='در حال انتظار برای اتصال امن…'; }
+    }
+
+    // Modal Answer Key
+    function buildAK(){
+      const parts=[];
+      for(let i=0;i<questions.length;i++){
+        const q=questions[i];
+        const ua=answers[i];
+        const uaText= ua===null ? "بی‌پاسخ" : q.options[ua];
+        const ca=q.correct; const caText=q.options[ca];
+        const ok = (ua===ca);
+        parts.push(`
+          <div class="ak-item">
+            <div class="ak-q">${i+1}. ${q.text}</div>
+            <div class="chips">
+              <span class="chip ${ok?'ok-chip':'err-chip'}">${ok? '✅ پاسخ شما:':'❌ پاسخ شما:'} ${uaText}</span>
+              <span class="chip ok-chip">✔ پاسخ صحیح: ${caText}</span>
+            </div>
+          </div>
+        `);
+      }
+      modalItems.innerHTML=parts.join('');
+      modalBody.scrollTop=0;
+    }
+    function openAK(){
+      buildAK();
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      appWrap.classList.add('blurred');
+      document.body.classList.add('no-scroll');
+      modalClose.focus({preventScroll:true});
+    }
+    function closeAK(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      appWrap.classList.remove('blurred');
+      document.body.classList.remove('no-scroll');
+    }
+    answerKeyBtn.onclick = openAK;
+    modalClose.onclick = closeAK;
+    modalBackdrop.onclick = closeAK;
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape' && modal.classList.contains('open')) closeAK();
+    });
+
+    function waitAuth(ms=3500){
+      if(firebaseReady) return Promise.resolve(true);
+      const start=Date.now();
+      return new Promise(res=>{
+        const iv=setInterval(()=>{
+          if(firebaseReady || Date.now()-start>ms){ clearInterval(iv); res(firebaseReady); }
+        },150);
+      });
+    }
+    (function watcher(){
+      const iv=setInterval(()=>{
+        if(firebaseReady && waitStats){ waitStats=false; updateStats(); clearInterval(iv); }
+      }, 300);
+    })();
+
+    async function updateStats(){
       try{
-        const ref = firebase.database().ref('counter');
-        await ref.transaction(cur=>(cur||0)+1);
-        const snap = await ref.once('value');
-        const count = snap.val()||0;
-        document.getElementById('result').textContent += " | شمارنده: "+count;
+        const ref=firebase.database().ref('counter');
+        await ref.transaction(c=>(c||0)+1);
+        const snap=await ref.once('value');
+        document.getElementById('stats').textContent = `🎉 تاکنون ${snap.val()||0} نفر از این آزمون استفاده کرده‌اند!`;
       }catch(e){
-        document.getElementById('result').textContent += " | خطای آمار";
         console.error(e);
+        document.getElementById('stats').textContent='آمار در دسترس نیست.';
       }
     }
   </script>
