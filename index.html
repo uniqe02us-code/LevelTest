@@ -1,114 +1,143 @@
-در Authentication → Sign-in method مطمئن شو Anonymous روی Enable هست.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>آزمون انگلیسی | Live Counter + Debug</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>آزمون انگلیسی | نسخهٔ انیمیشنی v9 (A11y fixed)</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
   <style>
+    :root{color-scheme:light dark}
+    /* ==================  THEME TOKENS (LIGHT DEFAULT)  ================== */
     :root{
-      --bg1:#e6f4f7; --bg2:#eee8f7;
-      --card:#ffffff;
+      --bg1:#e6f4f7; --bg2:#eee8f7; --card:#ffffff;
       --text:#1f2a37; --muted:#64748b;
       --brand1:#6a5acd; --brand2:#8a7bf0;
       --option:#f7f8ff; --option-hover:#eef2ff; --option-selected:#f0f4ff;
-      --shadow: 0 30px 80px rgba(21, 29, 63, .18);
-      --border: rgba(106,90,205,.12);
-      --overlay: rgba(15,23,42,.45);
-      --chipBg: rgba(255,255,255,.85);
-      --chipText: #1f2a37;
+      --shadow:0 30px 80px rgba(21,29,63,.18); --border:rgba(106,90,205,.12);
+      --overlay:rgba(15,23,42,.5); --chipBg:rgba(255,255,255,.85); --chipText:#1f2a37;
     }
-    body.dark{
-      --bg1:#0f172a; --bg2:#1f2340;
-      --card:rgba(26, 30, 56, .9);
-      --text:#eef2ff; --muted:#c7cbe1;
-      --brand1:#7a87ff; --brand2:#a3adff;
-      --option:rgba(255,255,255,.06); --option-hover:rgba(255,255,255,.10); --option-selected:rgba(255,255,255,.14);
-      --shadow: 0 24px 60px rgba(0,0,0,.55);
-      --border: rgba(255,255,255,.10);
-      --overlay: rgba(0,0,0,.55);
-      --chipBg: rgba(255,255,255,.08);
-      --chipText: #e8ecff;
-    }
+    /* DARK theme vars on body.dark */
+    body.dark{ --bg1:#0f172a; --bg2:#1f2340; --card:rgba(26,30,56,.9); --text:#eef2ff; --muted:#c7cbe1; --brand1:#7a87ff; --brand2:#a3adff; --option:rgba(255,255,255,.06); --option-hover:rgba(255,255,255,.10); --option-selected:rgba(255,255,255,.14); --shadow:0 24px 60px rgba(0,0,0,.55); --border:rgba(255,255,255,.10); --overlay:rgba(0,0,0,.55); --chipBg:rgba(255,255,255,.10); --chipText:#e8ecff; }
+
     *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:'Vazirmatn','Segoe UI',system-ui;
-      min-height:100vh; display:flex; align-items:center; justify-content:center;
-      color:var(--text);
-      background: radial-gradient(1400px 700px at -10% -10%, var(--bg1), transparent 60%),
-                  radial-gradient(1400px 700px at 110% 110%, var(--bg2), transparent 60%),
-                  linear-gradient(135deg, var(--bg1), var(--bg2));
-      position:relative; overflow-x:hidden; padding:24px;
+    html,body{height:100%}
+
+    /* ==================  PAGE LAYOUT (CENTER)  ================== */
+    body{font-family:'Vazirmatn','Segoe UI',system-ui;color:var(--text); direction:rtl;
+      background:
+        radial-gradient(1400px 700px at -10% -10%, var(--bg1), transparent 60%),
+        radial-gradient(1400px 700px at 110% 110%, var(--bg2), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100svh; display:grid; place-items:center; padding:clamp(12px,3.5vw,24px);
+      -webkit-tap-highlight-color:transparent; touch-action:manipulation;
     }
-    body.no-scroll{ overflow:hidden }
-    .toggle{ position:absolute; top:20px; right:20px; z-index:3; width:52px; height:52px; border-radius:50%;
-      display:grid; place-items:center; cursor:pointer; background:#fff; color:#111;
-      border:1px solid rgba(0,0,0,.06); box-shadow:0 12px 30px rgba(0,0,0,.12); transition:transform .18s ease }
-    body.dark .toggle{ background:rgba(255,255,255,.12); color:#fff; border-color:var(--border) }
-    .toggle:hover{ transform: translateY(-2px) }
-    #appWrap.blurred{ filter: blur(6px) saturate(0.95) brightness(0.95); pointer-events:none; user-select:none }
-    .card{ max-width: 880px; width: 96vw; background: var(--card); border: 1px solid var(--border);
-      border-radius: 36px; box-shadow: var(--shadow); padding: 42px 36px; text-align:center; animation:cardIn .5s cubic-bezier(.22,1,.36,1) }
-    @keyframes cardIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
-    .icon{font-size:52px;margin-bottom:10px}
-    h1{ font-weight:900; letter-spacing:-.3px; margin:10px 0 8px; font-size:34px }
-    p.lead{ color:var(--muted); font-size:16px; line-height:1.9; margin-bottom:18px }
-    .btn{ --c1:var(--brand1); --c2:var(--brand2); border:none; color:#fff; font-weight:800; cursor:pointer;
-      background: linear-gradient(90deg, var(--c1), var(--c2)); padding:14px 32px; border-radius:16px; font-size:16px;
-      box-shadow: 0 14px 30px rgba(106,90,205,.35); transition: transform .14s ease, box-shadow .14s ease, filter .14s ease }
-    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03) }
-    .btn:active{ transform: translateY(1px); box-shadow: 0 10px 22px rgba(106,90,205,.25) }
-    .btn.alt{ --c1:#6366f1; --c2:#06b6d4 }
-    .screen{ display:none } .screen.active{ display:block }
-    .progress{ display:flex; align-items:center; gap:10px; margin:12px 0 16px }
-    .bar{ flex:1; height:8px; background: rgba(0,0,0,.06); border-radius:999px; overflow:hidden }
-    .fill{ width:0%; height:100%; background: linear-gradient(90deg, var(--brand1), var(--brand2)); transition: width .35s ease }
-    .count{ min-width:90px; font-size:12px; color:var(--muted) }
-    .question{ font-size:20px; margin-bottom:14px }
-    .options{ display:grid; gap:12px; text-align:right }
-    .option{ background: var(--option); padding:14px 16px; border-radius:18px; border:2px solid transparent; cursor:pointer; transition: all .18s ease }
-    .option:hover{ background: var(--option-hover); transform: translateY(-1px) }
-    .option.selected{ background: var(--option-selected); border-color: var(--brand1); box-shadow: 0 10px 24px rgba(106,90,205,.15) }
-    .pill{ display:inline-block; margin-top:8px; padding:8px 20px; border-radius:999px; color:#fff; font-weight:900;
-           background: linear-gradient(90deg, #0ea5e9, #8b5cf6); box-shadow: 0 12px 28px rgba(139,92,246,.35) }
-    .muted{ color:var(--muted) }
-    #confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
-    .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px }
-    .chip{ background: var(--chipBg); color: var(--chipText); border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:13px; box-shadow: 0 6px 16px rgba(0,0,0,.06) }
-    .chip.warn{ opacity:.9 }
-    .chip.err{ background: rgba(239,68,68,.12); color:#991b1b; border-color: rgba(239,68,68,.35) }
-    body.dark .chip.err{ color:#ffd1d1 }
-    /* MODAL */
-    .modal-wrap{ position:fixed; inset:0; z-index:4; display:none; align-items:center; justify-content:center; }
-    .modal-wrap.open{ display:flex; }
-    .backdrop{ position:absolute; inset:0; background: var(--overlay); backdrop-filter: blur(8px) saturate(1.1); opacity:0; animation:fIn .18s ease forwards }
-    @keyframes fIn{ to{ opacity:1 } }
-    .modal{ position:relative; width:min(94vw, 980px); background:var(--card); border:1px solid var(--border); border-radius:28px; box-shadow: var(--shadow); overflow:hidden; transform: translateY(8px); animation: pop .25s ease forwards }
-    @keyframes pop{ to{ transform: translateY(0) } }
-    .modal header{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border) }
-    .modal h3{ font-size:18px; font-weight:900 }
-    .close{ background:transparent; border:1px solid var(--border); border-radius:12px; padding:8px 12px; cursor:pointer; color:var(--text) }
-    .modal .body{ max-height: min(78vh, 680px); overflow-y:auto; padding:14px 18px }
-    .modal .body::-webkit-scrollbar{ width:10px }
-    .modal .body::-webkit-scrollbar-thumb{ background: linear-gradient(180deg,var(--brand1),var(--brand2)); border-radius:999px }
-    .ak-item{ background: var(--option); border:1px solid var(--border); border-radius:16px; padding:12px; margin:10px 0 }
-    .ak-q{ font-weight:800; margin-bottom:6px }
-    .chips-ans{ display:flex; flex-wrap:wrap; gap:6px }
-    .chip-ans{ display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--border) }
-    .ok-chip{ background: rgba(16,185,129,.14); color:#c3f7d9; border-color: rgba(16,185,129,.35) }
-    .err-chip{ background: rgba(239,68,68,.16); color:#ffd3d3; border-color: rgba(239,68,68,.35) }
-    body:not(.dark) .ok-chip{ color:#065f46 }
-    body:not(.dark) .err-chip{ color:#991b1b }
+    body.no-scroll{overflow:hidden}
+
+    /* Fixed canvas so it never shifts layout */
+    #confetti{position:fixed; inset:0; width:100%; height:100%; display:block; pointer-events:none; z-index:0}
+
+    /* Theme toggle */
+    .toggle{position:fixed; top:calc(env(safe-area-inset-top) + 12px); right:calc(env(safe-area-inset-right) + 12px);
+      z-index:4; width:48px; height:48px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+      background:#fff; color:#111; border:1px solid rgba(0,0,0,.06); box-shadow:0 10px 26px rgba(0,0,0,.12);
+      transition:transform .18s ease, background .25s ease, color .25s ease; user-select:none; }
+    body.dark .toggle{background:rgba(255,255,255,.12); color:#fff; border-color:var(--border)}
+    .toggle:active{transform:scale(.96)}
+    .toggle[aria-busy="true"]{opacity:.6; pointer-events:none}
+
+    /* ========= TRUE circular reveal overlay ========= */
+    .bg-layer{position:fixed; inset:0; pointer-events:none; z-index:3;
+      background:
+        radial-gradient(1400px 700px at -10% -10%, var(--bg1), transparent 60%),
+        radial-gradient(1400px 700px at 110% 110%, var(--bg2), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      will-change:clip-path;
+    }
+    /* supply dark vars to overlay when target is dark */
+    .use-dark-vars{ --bg1:#0f172a; --bg2:#1f2340; --card:rgba(26,30,56,.9); --text:#eef2ff; --muted:#c7cbe1; --brand1:#7a87ff; --brand2:#a3adff; --option:rgba(255,255,255,.06); --option-hover:rgba(255,255,255,.10); --option-selected:rgba(255,255,255,.14); --shadow:0 24px 60px rgba(0,0,0,.55); --border:rgba(255,255,255,.10); --overlay:rgba(0,0,0,.55); --chipBg:rgba(255,255,255,.10); --chipText:#e8ecff; }
+    .theme-reveal{clip-path:circle(0px at var(--cx) var(--cy)); transition:clip-path .7s cubic-bezier(.22,1,.36,1)}
+    .theme-reveal.expand{clip-path:circle(150vmax at var(--cx) var(--cy))}
+    @supports not (clip-path:circle(50% at 50% 50%)){
+      /* Fallback animation if clip-path unsupported */
+      .theme-reveal{opacity:0; transition:opacity .6s ease}
+      .theme-reveal.expand{opacity:1}
+    }
+
+    main{position:relative; z-index:2; width:100%; max-width:980px}
+    .card{width:min(100%,920px); margin-inline:auto; background:var(--card); border:1px solid var(--border);
+      border-radius:clamp(16px,3vw,36px); box-shadow:var(--shadow);
+      padding:clamp(20px,4.2vw,42px) clamp(16px,3.8vw,36px); text-align:center; animation:cardIn .5s cubic-bezier(.22,1,.36,1)}
+    @keyframes cardIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
+
+    .icon{font-size:clamp(36px,6vw,56px); margin-bottom:clamp(6px,1.5vw,10px)}
+    h1{font-weight:900; letter-spacing:-.3px; margin:10px 0 8px; font-size:clamp(22px,4.8vw,36px)}
+    p.lead{color:var(--muted); font-size:clamp(13px,2.6vw,16px); line-height:1.9; margin-bottom:clamp(10px,2.5vw,18px)}
+
+    .btn{--c1:var(--brand1); --c2:var(--brand2); border:none; color:#fff; font-weight:800; cursor:pointer;
+      background:linear-gradient(90deg,var(--c1),var(--c2)); padding:clamp(10px,2.4vw,14px) clamp(18px,4.5vw,32px);
+      border-radius:clamp(10px,2.6vw,16px); font-size:clamp(14px,3.5vw,16px); box-shadow:0 14px 30px rgba(106,90,205,.35);
+      transition:transform .14s ease, filter .14s ease; min-height:44px; user-select:none}
+    .btn:active{transform:translateY(1px)}
+    .btn.alt{--c1:#6366f1; --c2:#06b6d4}
+
+    .screen{display:none} .screen.active{display:block}
+    .progress{display:flex; align-items:center; gap:10px; margin:12px 0 16px}
+    .bar{flex:1; height:8px; background:rgba(0,0,0,.06); border-radius:999px; overflow:hidden}
+    .fill{width:0%; height:100%; background:linear-gradient(90deg,var(--brand1),var(--brand2)); transition:width .35s ease}
+    .count{min-width:90px; font-size:clamp(12px,2.8vw,13px); color:var(--muted)}
+
+    .question{font-size:clamp(16px,4vw,20px); margin-bottom:12px; text-align:right}
+    .options{display:grid; gap:clamp(8px,2.4vw,12px); direction:rtl; justify-items:stretch}
+
+    .option{display:block; width:100%; text-align:right; background:var(--option); padding:clamp(12px,2.8vw,14px) clamp(12px,3vw,16px); border-radius:clamp(12px,3vw,18px);
+      border:2px solid transparent; cursor:pointer; line-height:1.9; direction:rtl;
+      transition:background .2s ease, border-color .25s ease, box-shadow .25s ease, transform .18s ease, outline-color .2s ease;
+      will-change:transform, box-shadow; outline:2px solid transparent; outline-offset:2px;
+    }
+    .option:hover{background:var(--option-hover); transform:translateY(-1px)}
+    .option:active{transform:scale(.99)}
+    .option.selected{background:var(--option-selected); border-color:var(--brand1); box-shadow:0 10px 24px rgba(106,90,205,.18); animation:pulse .22s ease}
+    .option:focus-visible{outline-color:var(--brand2)}
+    @keyframes pulse{from{transform:scale(.98)} to{transform:scale(1)}}
+
+    .pill{display:inline-block; margin-top:8px; padding:8px 20px; border-radius:999px; color:#fff; font-weight:900;
+      background:linear-gradient(90deg,#0ea5e9,#8b5cf6); box-shadow:0 12px 28px rgba(139,92,246,.35); font-size:clamp(12px,3.2vw,14px)}
+    .muted{color:var(--muted)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px}
+    .chip{background:var(--chipBg); color:var(--chipText); border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:clamp(12px,3vw,13px); box-shadow:0 6px 16px rgba(0,0,0,.06)}
+    .chip.err{background:rgba(239,68,68,.12); color:#991b1b; border-color:rgba(239,68,68,.35)}
+    body.dark .chip.err{color:#ffd1d1}
+
+    /* ===== Modal: use <dialog> (no ARIA role warnings) ===== */
+    dialog.modal{position:relative; width:min(96vw,980px); background:var(--card); border:1px solid var(--border); border-radius:clamp(14px,3vw,28px); box-shadow:var(--shadow); overflow:hidden; transform:translateY(8px); animation:pop .25s ease forwards; max-height:calc(100svh - 2*env(safe-area-inset-top) - 32px); padding:0}
+    @keyframes pop{to{transform:translateY(0)}}
+    dialog.modal::backdrop{background:var(--overlay); backdrop-filter:blur(8px) saturate(1.1)}
+    .modal header{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border)}
+    .modal h3{font-size:clamp(14px,3.2vw,18px); font-weight:900}
+    .close{background:transparent; border:1px solid var(--border); border-radius:12px; padding:8px 12px; cursor:pointer; color:var(--text); min-height:40px}
+    .modal .body{max-height:min(78svh,680px); overflow-y:auto; padding:10px 12px}
+    .modal .body::-webkit-scrollbar{width:10px} .modal .body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--brand1),var(--brand2)); border-radius:999px}
+    .ak-item{background:var(--option); border:1px solid var(--border); border-radius:16px; padding:12px; margin:10px 0}
+    .ak-q{font-weight:800; margin-bottom:6px; font-size:clamp(14px,3.4vw,16px); text-align:right}
+    .chips-ans{display:flex; flex-wrap:wrap; gap:6px}
+    .chip-ans{display:inline-block; padding:6px 10px; border-radius:999px; font-size:clamp(11px,3vw,12px); border:1px solid var(--border)}
+    .ok-chip{background:rgba(16,185,129,.14); color:#065f46; border-color:rgba(16,185,129,.35)}
+    .err-chip{background:rgba(239,68,68,.16); color:#991b1b; border-color:rgba(239,68,68,.35)}
+    body.dark .ok-chip{color:#c3f7d9} body.dark .err-chip{color:#ffd3d3}
+
+    @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important} }
   </style>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <canvas id="confetti"></canvas>
-  <div id="appWrap">
-    <button class="toggle" id="themeToggle" title="تغییر تم" aria-label="تغییر تم">🌞</button>
-    <!-- WELCOME -->
+  <button class="toggle" id="themeToggle" title="تغییر تم" aria-label="تغییر تم">🌞</button>
+
+  <main id="appWrap">
     <section id="welcome" class="card screen active" aria-live="polite">
       <div class="icon" aria-hidden="true">📚</div>
       <h1>به آزمون زبان انگلیسی خوش آمدید!</h1>
@@ -118,25 +147,11 @@
         <span id="authChip" class="chip warn">در حال احراز هویت ناشناس…</span>
         <span id="dbChip" class="chip warn">بررسی اتصال دیتابیس…</span>
       </div>
-      <!-- Debug Panel (اختیاری با ?debug=1) -->
-      <div id="debugPanel" style="display:none; text-align:right; direction:rtl; margin-top:14px">
-        <details style="background:var(--option); border:1px solid var(--border); border-radius:16px; padding:10px">
-          <summary style="cursor:pointer; font-weight:800">🛠️ جزئیات عیب‌یابی</summary>
-          <div style="font-size:13px; margin-top:8px; line-height:1.9">
-            <div>Origin: <code id="dbg-origin"></code></div>
-            <div>Auth Domain: <code id="dbg-authDomain"></code></div>
-            <div>Project ID: <code id="dbg-project"></code></div>
-            <div>DB URL: <code id="dbg-db"></code></div>
-            <div>Auth State: <code id="dbg-auth"></code></div>
-            <div>آخرین خطا: <code id="dbg-last"></code></div>
-          </div>
-        </details>
-      </div>
-      <div style="margin-top:16px">
+      <div style="margin-top:12px">
         <button class="btn" id="startBtn">🌸 شروع آزمون</button>
       </div>
     </section>
-    <!-- QUIZ -->
+
     <section id="quiz" class="card screen" aria-live="polite">
       <div class="progress">
         <div class="bar"><div class="fill" id="barFill"></div></div>
@@ -144,169 +159,106 @@
       </div>
       <div class="question" id="question-text">...</div>
       <div class="options" id="options"></div>
-      <div style="margin-top:14px; display:flex; justify-content:flex-end">
+      <div style="margin-top:14px;display:flex;justify-content:flex-end">
         <button class="btn" id="nextBtn" disabled>بعدی ➝</button>
       </div>
     </section>
-    <!-- RESULT -->
+
     <section id="result" class="card screen" aria-live="polite">
       <div class="icon" aria-hidden="true">✨</div>
       <h1>آزمون به پایان رسید!</h1>
       <p class="lead" id="result-text">در حال محاسبه...</p>
       <div id="level-display" style="margin-bottom:6px"></div>
       <p class="muted" id="stats">در حال آماده‌سازی آمار...</p>
-      <div style="margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap">
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn alt" id="answerKeyBtn">📄 پاسخ‌نامه</button>
         <button class="btn" id="restartBtn">🔁 آزمون دوباره</button>
       </div>
     </section>
-  </div>
-  <!-- MODAL -->
-  <div class="modal-wrap" id="akModal" aria-hidden="true" role="dialog" aria-labelledby="akTitle">
-    <div class="backdrop" id="akBackdrop"></div>
-    <div class="modal" role="document" aria-modal="true">
-      <header>
-        <h3 id="akTitle">پاسخ‌نامه آزمون</h3>
-        <button class="close" id="akClose" aria-label="بستن">✕</button>
-      </header>
-      <div class="body" id="akBody"><div id="akItems"></div></div>
-    </div>
-  </div>
+  </main>
+
+  <!-- Modal: native <dialog> to pass a11y checks -->
+  <dialog id="akDialog" class="modal" aria-labelledby="akTitle">
+    <header>
+      <h3 id="akTitle">پاسخ‌نامه آزمون</h3>
+      <button class="close" id="akClose" aria-label="بستن">✕</button>
+    </header>
+    <div class="body" id="akBody"><div id="akItems"></div></div>
+  </dialog>
+
   <script>
-    // Theme
+    /* =============== Theme switch with TRUE circular reveal =============== */
     const toggle=document.getElementById('themeToggle');
-    function applyTheme(){ const saved=localStorage.getItem('theme')||'light'; document.body.classList.toggle('dark', saved==='dark'); toggle.textContent = saved==='dark'?'🌙':'🌞'; }
-    toggle.onclick=()=>{ const isDark=document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark?'dark':'light'); applyTheme(); };
+    let themeBusy=false; // prevent stacking
+    function applyTheme(){const saved=localStorage.getItem('theme')||'light';document.body.classList.toggle('dark',saved==='dark');toggle.textContent=saved==='dark'?'🌙':'🌞';}
+    function circularRevealSwitch(ev){
+      if(themeBusy) return; themeBusy=true; toggle.setAttribute('aria-busy','true');
+      const targetIsDark = !document.body.classList.contains('dark');
+      const layer=document.createElement('div');
+      layer.className='bg-layer theme-reveal'+(targetIsDark?' use-dark-vars':'');
+      const x=(ev?.clientX??(innerWidth-60));
+      const y=(ev?.clientY??24);
+      layer.style.setProperty('--cx', x+'px');
+      layer.style.setProperty('--cy', y+'px');
+      document.body.appendChild(layer);
+      requestAnimationFrame(()=>{ requestAnimationFrame(()=>layer.classList.add('expand')); });
+      const done=()=>{ document.body.classList.toggle('dark', targetIsDark);
+        localStorage.setItem('theme', targetIsDark?'dark':'light');
+        applyTheme(); layer.remove(); themeBusy=false; toggle.removeAttribute('aria-busy'); };
+      layer.addEventListener('transitionend',done,{once:true});
+      setTimeout(()=>{ if(themeBusy){ done(); } }, 1100);
+    }
+    toggle.addEventListener('click', circularRevealSwitch, {passive:true});
     applyTheme();
 
-    // Debug flags / panel
-    const urlParams = new URLSearchParams(location.search);
-    const DEBUG_MODE = urlParams.get('debug') === '1';
-    const dbg = {
-      p: document.getElementById('debugPanel'),
-      origin: document.getElementById('dbg-origin'),
-      authDomain: document.getElementById('dbg-authDomain'),
-      project: document.getElementById('dbg-project'),
-      db: document.getElementById('dbg-db'),
-      auth: document.getElementById('dbg-auth'),
-      last: document.getElementById('dbg-last'),
-      show(){ if(this.p) this.p.style.display='block'; },
-      set(k,v){ if(this[k]) this[k].textContent = v ?? '-'; }
-    };
-    if (DEBUG_MODE) dbg.show();
-
-    // Firebase
-    const firebaseConfig={
-      apiKey:"AIzaSyBcRxeCvCKQ9IJdjfh7V6NNNkymyAtMwp0",
-      authDomain:"fashenglishtest.firebaseapp.com",
-      databaseURL:"https://fashenglishtest-default-rtdb.firebaseio.com",
-      projectId:"fashenglishtest",
-      storageBucket:"fashenglishtest.firebasestorage.app",
-      messagingSenderId:"142726893273",
-      appId:"1:142726893273:web:e8cb4f4982b20065d2f8c8"
-    };
-    let firebaseReady=false;
-    const authChip=document.getElementById('authChip');
-    const dbChip=document.getElementById('dbChip');
-    function setChip(el, state, text){ el.className='chip'+(state?(' '+state):''); el.textContent=text; }
-
-    function explainAuthError(code){
-      switch(code){
-        case 'auth/unauthorized-domain':
-          return 'دامنه مجاز نیست؛ در Firebase → Authentication → Authorized domains دامنه سایت (github.io) را اضافه کنید.';
-        case 'auth/operation-not-allowed':
-          return 'Provider ناشناس فعال نیست؛ در Authentication → Sign-in method گزینه Anonymous را Enable کنید.';
-        case 'auth/network-request-failed':
-          return 'مشکل شبکه/VPN/AdBlock یا مسدود شدن دامنه‌های گوگل. VPN/AdBlock را خاموش یا شبکه را عوض کنید.';
-        case 'auth/too-many-requests':
-          return 'درخواست‌های زیاد یا محدودیت موقت؛ چند دقیقه بعد دوباره تلاش کنید.';
-        case 'auth/internal-error':
-          return 'خطای داخلی سرویس؛ رفرش کنید یا بعداً تلاش کنید.';
-        default: return 'خطای احراز هویت ('+code+')';
-      }
-    }
-
-    // Live counter
-    const statsWelcome=document.getElementById('statsWelcome');
-    let counterRef=null, counterListenerSet=false;
-    function setCountersText(n){
-      const t = typeof n==='number' ? n : 0;
-      statsWelcome.textContent = `تا کنون ${t} نفر از این آزمون استفاده کرده‌اند! 🎉`;
-      const statsRes = document.getElementById('stats');
-      if(statsRes && document.getElementById('result').classList.contains('active')){
-        statsRes.textContent = `🎉 تاکنون ${t} نفر از این آزمون استفاده کرده‌اند!`;
-      }
-    }
-    function setupLiveCounter(){
-      try{
-        if(!counterRef){ counterRef = firebase.database().ref('counter'); }
-        if(!counterListenerSet){
-          counterRef.on('value', s=>setCountersText(s.val()||0), e=>{ if(DEBUG_MODE) console.warn('counter listener', e); });
-          counterListenerSet=true;
-        }
-      }catch(e){ if(DEBUG_MODE) console.warn('setupLiveCounter error', e); }
-    }
-    window.addEventListener('beforeunload', ()=>{ try{ counterRef && counterRef.off(); }catch(e){} });
+    /* =============== Firebase =============== */
+    const firebaseConfig={apiKey:"AIzaSyBcRxeCvCKQ9IJdjfh7V6NNNkymyAtMwp0",authDomain:"fashenglishtest.firebaseapp.com",databaseURL:"https://fashenglishtest-default-rtdb.firebaseio.com",projectId:"fashenglishtest",storageBucket:"fashenglishtest.firebasestorage.app",messagingSenderId:"142726893273",appId:"1:142726893273:web:e8cb4f4982b20065d2f8c8"};
+    const authChip=document.getElementById('authChip'); const dbChip=document.getElementById('dbChip');
+    function setChip(el,s,t){el.className='chip'+(s?(' '+s):''); el.textContent=t}
+    let counterRef=null, counterListenerSet=false, firebaseReady=false; const statsWelcome=document.getElementById('statsWelcome');
+    function setCountersText(n){const t=Number.isFinite(n)?n:0; statsWelcome.textContent=`تا کنون ${t} نفر از این آزمون استفاده کرده‌اند! 🎉`; const sr=document.getElementById('stats'); if(sr&&document.getElementById('result').classList.contains('active')){sr.textContent=`🎉 تاکنون ${t} نفر از این آزمون استفاده کرده‌اند!`;}}
 
     try{
-      if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
-      if (DEBUG_MODE){
-        dbg.set('origin', location.origin);
-        dbg.set('authDomain', firebaseConfig.authDomain);
-        dbg.set('project', firebaseConfig.projectId);
-        dbg.set('db', firebaseConfig.databaseURL);
+      if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      function setupLiveCounter(){
+        try{
+          if(!counterRef){counterRef=firebase.database().ref('counter');}
+          if(!counterListenerSet){counterRef.on('value',s=>setCountersText(s.val()||0), e=>console.warn('counter on error',e)); counterListenerSet=true;}
+        }catch(e){console.warn('setupLiveCounter error', e)}
       }
       setupLiveCounter();
-
+      addEventListener('beforeunload',()=>{try{counterRef&&counterRef.off();}catch(_){}},{passive:true});
       firebase.auth().onAuthStateChanged(u=>{
-        if(u){
-          firebaseReady=true;
-          setChip(authChip,'','احراز هویت ناشناس: انجام شد ✅');
-          DEBUG_MODE && dbg.set('auth','signed-in (anonymous)');
-        }else{
+        if(u){firebaseReady=true; setChip(authChip,'','احراز هویت ناشناس: انجام شد ✅');}
+        else{
           setChip(authChip,'warn','در حال احراز هویت ناشناس…');
-          firebase.auth().signInAnonymously().catch(err=>{
-            const msg = explainAuthError(err.code);
-            setChip(authChip,'err','خطا در احراز هویت ناشناس ❌');
-            DEBUG_MODE && dbg.set('last', err.code+' – '+msg);
-            if (DEBUG_MODE) console.warn('Auth error:', err, msg);
-          });
+          firebase.auth().signInAnonymously().catch(err=>{setChip(authChip,'err','خطا در احراز هویت ناشناس ❌'); console.warn('Auth error',err.code);});
         }
-      }, err=>{
-        const msg = explainAuthError(err.code);
-        setChip(authChip,'err','خطا در احراز هویت ناشناس ❌');
-        DEBUG_MODE && dbg.set('last', err.code+' – '+msg);
       });
-
       firebase.database().ref('/').limitToFirst(1).once('value')
-        .then(()=> setChip(dbChip,'','دیتابیس متصل ✅'))
-        .catch(err=>{
-          setChip(dbChip,'err','اتصال دیتابیس: خطا ❌');
-          DEBUG_MODE && dbg.set('last', (err.code||'db-error')+' – خطا در اتصال دیتابیس');
-        });
+        .then(()=>setChip(dbChip,'','دیتابیس متصل ✅'))
+        .catch(()=>setChip(dbChip,'err','اتصال دیتابیس: خطا ❌'));
+    }catch(e){ setChip(dbChip,'err','Init خطا'); console.warn('Firebase init error', e) }
 
-    }catch(e){
-      setChip(dbChip,'err','Init خطا');
-      DEBUG_MODE && dbg.set('last','init-error: '+(e.message||e));
-    }
+    /* =============== Confetti (fixed canvas) =============== */
+    const cvs=document.getElementById('confetti');
+    const ctx=cvs.getContext ? cvs.getContext('2d') : null;
+    function size(){ if(!cvs) return; cvs.width=innerWidth; cvs.height=innerHeight; }
+    size(); addEventListener('resize',size,{passive:true});
+    function confetti(n=120){ if(!ctx) return; const p=[]; for(let i=0;i<n;i++) p.push({x:Math.random()*cvs.width, y:-20-Math.random()*cvs.height, s:2+Math.random()*4, a:Math.random()*360, v:1.8+Math.random()*2.7, c:`hsl(${Math.random()*360},86%,62%)`}); let t=0; (function anim(){t++; ctx.clearRect(0,0,cvs.width,cvs.height); p.forEach(o=>{o.y+=o.v; o.a+=4; const r=o.s; ctx.save(); ctx.translate(o.x,o.y); ctx.rotate(o.a*Math.PI/180); ctx.fillStyle=o.c; ctx.fillRect(-r,-r,r*2,r*2); ctx.restore();}); if(t<420) requestAnimationFrame(anim); else ctx.clearRect(0,0,cvs.width,cvs.height);})();}
 
-    // Confetti
-    const cvs=document.getElementById('confetti'), ctx=cvs.getContext('2d');
-    function resize(){ cvs.width=innerWidth; cvs.height=innerHeight; } resize(); addEventListener('resize', resize);
-    function confetti(n=140){ const p=[]; for(let i=0;i<n;i++) p.push({x:Math.random()*cvs.width,y:-20-Math.random()*cvs.height,s:2+Math.random()*4,a:Math.random()*360,v:1.8+Math.random()*2.7,c:`hsl(${Math.random()*360},86%,62%)`}); let t=0; (function anim(){ t++; ctx.clearRect(0,0,cvs.width,cvs.height); p.forEach(o=>{ o.y+=o.v; o.a+=4; const r=o.s; ctx.save(); ctx.translate(o.x,o.y); ctx.rotate(o.a*Math.PI/180); ctx.fillStyle=o.c; ctx.fillRect(-r,-r,r*2,r*2); ctx.restore(); }); if(t<420) requestAnimationFrame(anim); else ctx.clearRect(0,0,cvs.width,cvs.height); })(); }
-
-    // Quiz logic
+    /* =============== Quiz (logic intact) =============== */
     const questions=[
-      { text: "?What is the opposite of 'happy'", options: ["Angry","Sad","Tired","Busy"], correct: 1 },
-      { text: ":Choose the correct sentence", options: [".She go to school",".She goes to school",".She going to school",".She gone to school"], correct: 1 },
-      { text: "?What does 'delicious' mean", options: ["Boring","Expensive","Tasty","Cold"], correct: 2 },
-      { text: ".If I _____ you, I would study harder", options: ["am","was","were","be"], correct: 2 },
-      { text: "?Which sentence is in the past perfect tense", options: [".I have eaten",".I ate",".I had eaten",".I will have eaten"], correct: 2 },
-      { text: "'.He has been working here _____ 2015'", options: ["for","since","from","in"], correct: 1 },
-      { text: "?What is a synonym for 'exhausted'", options: ["Excited","Very tired","Happy","Angry"], correct: 1 },
-      { text: ":Choose the correct passive sentence", options: [".The book wrote by her",".The book was written by her",".The book is wrote by her",".She was written the book"], correct: 1 },
-      { text: "'.Despite _____ tired, she finished her homework'", options: ["of being","being","she was","to be"], correct: 1 },
-      { text: "?What does 'ambiguous' mean", options: ["Very clear","Unclear or having more than one meaning","Angry","Expensive"], correct: 1 }
+      { text: "?What is the opposite of 'happy'", options:["Angry","Sad","Tired","Busy"], correct:1 },
+      { text: ":Choose the correct sentence", options:[".She go to school",".She goes to school",".She going to school",".She gone to school"], correct:1 },
+      { text: "?What does 'delicious' mean", options:["Boring","Expensive","Tasty","Cold"], correct:2 },
+      { text: ".If I _____ you, I would study harder", options:["am","was","were","be"], correct:2 },
+      { text: "?Which sentence is in the past perfect tense", options:[".I have eaten",".I ate",".I had eaten",".I will have eaten"], correct:2 },
+      { text: "'.He has been working here _____ 2015'", options:["for","since","from","in"], correct:1 },
+      { text: "?What is a synonym for 'exhausted'", options:["Excited","Very tired","Happy","Angry"], correct:1 },
+      { text: ":Choose the correct passive sentence", options:[".The book wrote by her",".The book was written by her",".The book is wrote by her",".She was written the book"], correct:1 },
+      { text: "'.Despite _____ tired, she finished her homework'", options:["of being","being","she was","to be"], correct:1 },
+      { text: "?What does 'ambiguous' mean", options:["Very clear","Unclear or having more than one meaning","Angry","Expensive"], correct:1 }
     ];
 
     const startBtn=document.getElementById('startBtn');
@@ -314,121 +266,83 @@
     const restartBtn=document.getElementById('restartBtn');
     const barFill=document.getElementById('barFill');
     const answerKeyBtn=document.getElementById('answerKeyBtn');
-    const appWrap=document.getElementById('appWrap');
 
-    const modal=document.getElementById('akModal');
+    const akDialog=document.getElementById('akDialog');
     const modalBody=document.getElementById('akBody');
     const modalItems=document.getElementById('akItems');
     const modalClose=document.getElementById('akClose');
-    const modalBackdrop=document.getElementById('akBackdrop');
 
-    let current=0; let answers=new Array(questions.length).fill(null);
-    let waitStats=false; let finished=false; let navBusy=false;
+    let current=0; let answers=new Array(questions.length).fill(null); let waitStats=false; let finished=false; let navBusy=false;
 
-    function show(id){
-      ['welcome','quiz','result'].forEach(s=>document.getElementById(s).classList.remove('active'));
-      const el=document.getElementById(id); el.classList.add('active');
-      el.style.animation='none'; void el.offsetWidth; el.style.animation=null;
+    function show(id){['welcome','quiz','result'].forEach(s=>document.getElementById(s).classList.remove('active')); const el=document.getElementById(id); el.classList.add('active'); el.style.animation='none'; void el.offsetWidth; el.style.animation=null; scrollTo({top:0,behavior:'smooth'});}
+    function resetForNewRun(){current=0; answers.fill(null); finished=false; waitStats=false; navBusy=false; barFill.style.width='0%'; if(akDialog.open) akDialog.close();}
+
+    startBtn.addEventListener('click',()=>{resetForNewRun(); show('quiz'); loadQ();},{passive:true});
+    restartBtn.addEventListener('click',()=>{resetForNewRun(); show('welcome');},{passive:true});
+
+    function optionEl(text, i){
+      const el=document.createElement('button');
+      el.type='button';
+      el.className='option';
+      el.textContent=text;
+      el.setAttribute('data-index',String(i));
+      el.setAttribute('aria-pressed','false');
+      el.addEventListener('click',()=>selectOption(i),{passive:true});
+      return el;
     }
-    function resetForNewRun(){
-      current=0; answers.fill(null); finished=false; waitStats=false; navBusy=false;
-      barFill.style.width='0%'; closeAK();
+
+    function renderOptions(q){
+      const box=document.getElementById('options');
+      box.innerHTML='';
+      q.options.forEach((opt,i)=>{ box.appendChild(optionEl(opt,i)); });
+      updateSelectedVisual();
     }
-    startBtn.onclick=()=>{ resetForNewRun(); show('quiz'); loadQ(); };
-    restartBtn.onclick=()=>{ resetForNewRun(); show('welcome'); };
+
+    function updateSelectedVisual(){
+      const sel=answers[current];
+      document.querySelectorAll('#options .option').forEach((x)=>{
+        const i=Number(x.getAttribute('data-index'));
+        const on = (sel===i);
+        x.classList.toggle('selected', on);
+        x.setAttribute('aria-pressed', on?'true':'false');
+      });
+      nextBtn.disabled = (sel===null || sel===undefined);
+    }
+
+    function selectOption(i){ if(navBusy) return; answers[current]=i; updateSelectedVisual(); }
 
     function loadQ(){
       const q=questions[current];
       document.getElementById('question-text').textContent=q.text;
       document.getElementById('current').textContent=current+1;
       barFill.style.width=(current/questions.length*100)+'%';
-      const box=document.getElementById('options'); box.innerHTML='';
-      q.options.forEach((opt,i)=>{
-        const el=document.createElement('div'); el.className='option'; el.textContent=opt;
-        if(answers[current]===i) el.classList.add('selected');
-        el.onclick=()=>{
-          if(navBusy) return;
-          answers[current]=i;
-          document.querySelectorAll('.option').forEach((x,j)=>x.classList.toggle('selected', j===i));
-          nextBtn.disabled=false;
-        };
-        box.appendChild(el);
-      });
-      nextBtn.disabled = answers[current]===null;
-    }
-    nextBtn.onclick=()=>{
-      if(navBusy) return; navBusy=true; nextBtn.disabled=true;
-      setTimeout(()=>{
-        if(current<questions.length-1){ current++; loadQ(); navBusy=false; }
-        else { finish(); }
-      }, 50);
-    };
-    function levelFrom(score){
-      if(score<=3) return "A1 (مبتدی)";
-      if(score<=5) return "A2 (پایه)";
-      if(score<=7) return "B1 (متوسط)";
-      if(score<=9) return "B2 (بالاتر از متوسط)";
-      return "C1 (پیشرفته)";
-    }
-    async function finish(){
-      if(finished) return; finished=true;
-      let score=0; for(let i=0;i<questions.length;i++){ if(answers[i]===questions[i].correct) score++; }
-      document.getElementById('result-text').innerHTML=`امتیاز شما: <b>${score}</b> از 10`;
-      document.getElementById('level-display').innerHTML=`<span class="pill">${levelFrom(score)}</span>`;
-      barFill.style.width='100%'; show('result'); confetti();
-      if(await waitAuth()){ updateStats(); } else { waitStats=true; document.getElementById('stats').textContent='در حال انتظار برای اتصال امن…'; }
-    }
-    function waitAuth(ms=3500){
-      if(firebaseReady) return Promise.resolve(true);
-      const start=Date.now();
-      return new Promise(res=>{
-        const iv=setInterval(()=>{
-          if(firebaseReady || Date.now()-start>ms){ clearInterval(iv); res(firebaseReady); }
-        },150);
-      });
-    }
-    (function watcher(){
-      const iv=setInterval(()=>{
-        if(firebaseReady && waitStats){ waitStats=false; updateStats(); clearInterval(iv); }
-      }, 300);
-    })();
-    async function updateStats(){
-      try{
-        const ref=firebase.database().ref('counter');
-        await ref.transaction(c=>(c||0)+1);
-        const snap=await ref.once('value');
-        setCountersText(snap.val()||0);
-      }catch(e){
-        console.error(e);
-        document.getElementById('stats').textContent='آمار در دسترس نیست.';
-      }
+      renderOptions(q);
     }
 
-    function buildAK(){
-      const parts=[];
-      for(let i=0;i<questions.length;i++){
-        const q=questions[i];
-        const ua=answers[i];
-        const uaText= ua===null ? "بی‌پاسخ" : q.options[ua];
-        const ca=q.correct; const caText=q.options[ca];
-        const ok = (ua===ca);
-        parts.push(`
-          <div class="ak-item">
-            <div class="ak-q">${i+1}. ${q.text}</div>
-            <div class="chips-ans">
-              <span class="chip-ans ${ok?'ok-chip':'err-chip'}">${ok? '✅ پاسخ شما:':'❌ پاسخ شما:'} ${uaText}</span>
-              <span class="chip-ans ok-chip">✔ پاسخ صحیح: ${caText}</span>
-            </div>
-          </div>
-        `);
-      }
-      modalItems.innerHTML=parts.join('');
-      modalBody.scrollTop=0;
-    }
-    function openAK(){ buildAK(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); appWrap.classList.add('blurred'); document.body.classList.add('no-scroll'); modalClose.focus({preventScroll:true}); }
-    function closeAK(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); appWrap.classList.remove('blurred'); document.body.classList.remove('no-scroll'); }
-    answerKeyBtn.onclick = openAK; modalClose.onclick = closeAK; modalBackdrop.onclick = closeAK;
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeAK(); });
+    // debounce clicks on Next
+    let nextLock=false;
+    nextBtn.addEventListener('click',()=>{
+      if(navBusy||nextLock) return; nextLock=true; setTimeout(()=>nextLock=false,160);
+      navBusy=true; nextBtn.disabled=true;
+      setTimeout(()=>{ if(current<questions.length-1){ current++; loadQ(); navBusy=false; } else { finish(); } }, 120);
+    },{passive:true});
+
+    function levelFrom(score){ if(score<=3) return "A1 (مبتدی)"; if(score<=5) return "A2 (پایه)"; if(score<=7) return "B1 (متوسط)"; if(score<=9) return "B2 (بالاتر از متوسط)"; return "C1 (پیشرفته)"; }
+
+    function waitAuth(ms=3500){ if(firebaseReady) return Promise.resolve(true); const start=Date.now(); return new Promise(res=>{ const iv=setInterval(()=>{ if(firebaseReady||Date.now()-start>ms){ clearInterval(iv); res(firebaseReady); } },150); }); }
+    (function watcher(){ const iv=setInterval(()=>{ if(firebaseReady&&waitStats){ waitStats=false; updateStats(); clearInterval(iv); } },300); })();
+
+    async function updateStats(){ try{ const ref=firebase.database().ref('counter'); await ref.transaction(c=>{ const v=(c||0)+1; return Number.isFinite(v)?v:1; }); const snap=await ref.once('value'); setCountersText(snap.val()||0); } catch(e){ const el=document.getElementById('stats'); if(el) el.textContent='آمار در دسترس نیست.'; console.warn('updateStats error', e); } }
+
+    function buildAK(){ const parts=[]; for(let i=0;i<questions.length;i++){ const q=questions[i]; const ua=answers[i]; const uaText=ua===null?"بی‌پاسخ":q.options[ua]; const ca=q.correct; const caText=q.options[ca]; const ok=(ua===ca); parts.push(`<div class='ak-item'><div class='ak-q'>${i+1}. ${q.text}</div><div class='chips-ans'><span class='chip-ans ${ok?'ok-chip':'err-chip'}'>${ok?'✅ پاسخ شما:':'❌ پاسخ شما:'} ${uaText}</span><span class='chip-ans ok-chip'>✔ پاسخ صحیح: ${caText}</span></div></div>`);} modalItems.innerHTML=parts.join(''); modalBody.scrollTop=0; }
+
+    function openAK(){ buildAK(); if(!akDialog.open) akDialog.showModal(); }
+    function closeAK(){ if(akDialog.open) akDialog.close(); }
+    answerKeyBtn.addEventListener('click',openAK,{passive:true});
+    modalClose.addEventListener('click',closeAK,{passive:true});
+    akDialog.addEventListener('click',(e)=>{ if(e.target===akDialog) closeAK(); });
+
+    async function finish(){ if(finished) return; finished=true; let score=0; for(let i=0;i<questions.length;i++) if(answers[i]===questions[i].correct) score++; document.getElementById('result-text').innerHTML=`امتیاز شما: <b>${score}</b> از 10`; document.getElementById('level-display').innerHTML=`<span class='pill'>${levelFrom(score)}</span>`; barFill.style.width='100%'; show('result'); confetti(); if(await waitAuth()) updateStats(); else { const el=document.getElementById('stats'); if(el) el.textContent='در حال انتظار برای اتصال امن…'; waitStats=true; } }
   </script>
 </body>
 </html>
