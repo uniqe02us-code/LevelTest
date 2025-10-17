@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>آزمون زبان انگلیسی | پاسخ‌نامه در صفحهٔ جدا + Firebase</title>
+  <title>آزمون زبان انگلیسی | شمارندهٔ زنده + آمار و وضعیت + پاسخ‌نامه</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
   <style>
     :root{
@@ -16,6 +16,8 @@
       --border: rgba(106,90,205,.12);
       --ok:#10b981; --err:#ef4444;
       --overlay: rgba(15,23,42,.45);
+      --chipBg: rgba(255,255,255,.85);
+      --chipText: #1f2a37;
     }
     body.dark{
       --bg1:#0f172a; --bg2:#1f2340;
@@ -26,6 +28,8 @@
       --shadow: 0 24px 60px rgba(0,0,0,.55);
       --border: rgba(255,255,255,.10);
       --overlay: rgba(0,0,0,.55);
+      --chipBg: rgba(255,255,255,.08);
+      --chipText: #e8ecff;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -71,6 +75,13 @@
     .muted{ color:var(--muted) }
     #confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
 
+    /* chips (welcome status) */
+    .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px }
+    .chip{ background: var(--chipBg); color: var(--chipText); border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:13px; box-shadow: 0 6px 16px rgba(0,0,0,.06) }
+    .chip.warn{ opacity:.9 }
+    .chip.err{ background: rgba(239,68,68,.12); color:#991b1b; border-color: rgba(239,68,68,.35) }
+    body.dark .chip.err{ color:#ffd1d1 }
+
     /* MODAL (Answer Key) */
     .modal-wrap{ position:fixed; inset:0; z-index:4; display:none; align-items:center; justify-content:center; }
     .modal-wrap.open{ display:flex; }
@@ -82,13 +93,12 @@
     .modal h3{ font-size:18px; font-weight:900 }
     .close{ background:transparent; border:1px solid var(--border); border-radius:12px; padding:8px 12px; cursor:pointer; color:var(--text) }
     .modal .body{ max-height: min(78vh, 680px); overflow-y:auto; padding:14px 18px }
-    /* scrollbar */
     .modal .body::-webkit-scrollbar{ width:10px }
     .modal .body::-webkit-scrollbar-thumb{ background: linear-gradient(180deg,var(--brand1),var(--brand2)); border-radius:999px }
     .ak-item{ background: var(--option); border:1px solid var(--border); border-radius:16px; padding:12px; margin:10px 0 }
     .ak-q{ font-weight:800; margin-bottom:6px }
-    .chips{ display:flex; flex-wrap:wrap; gap:6px }
-    .chip{ display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--border) }
+    .chips-ans{ display:flex; flex-wrap:wrap; gap:6px }
+    .chip-ans{ display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--border) }
     .ok-chip{ background: rgba(16,185,129,.14); color:#c3f7d9; border-color: rgba(16,185,129,.35) }
     .err-chip{ background: rgba(239,68,68,.16); color:#ffd3d3; border-color: rgba(239,68,68,.35) }
     body:not(.dark) .ok-chip{ color:#065f46 }
@@ -109,7 +119,14 @@
       <div class="icon" aria-hidden="true">📚</div>
       <h1>به آزمون زبان انگلیسی خوش آمدید!</h1>
       <p class="lead">در این فضای آرام، سطح زبان خود را کشف کنید.<br>۱۰ سؤال هوشمندانه — بدون استرس، با لذت.</p>
-      <button class="btn" id="startBtn">🌸 شروع آزمون</button>
+      <p class="muted" id="statsWelcome">در حال آماده‌سازی آمار…</p>
+      <div class="chips">
+        <span id="authChip" class="chip warn">در حال احراز هویت ناشناس…</span>
+        <span id="dbChip" class="chip warn">بررسی اتصال دیتابیس…</span>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn" id="startBtn">🌸 شروع آزمون</button>
+      </div>
     </section>
 
     <!-- QUIZ -->
@@ -171,13 +188,47 @@
       appId:"1:142726893273:web:e8cb4f4982b20065d2f8c8"
     };
     let firebaseReady=false;
+    const authChip=document.getElementById('authChip');
+    const dbChip=document.getElementById('dbChip');
+    function setChip(el, state, text){ el.className='chip'+(state?(' '+state):''); el.textContent=text; }
+
+    let counterRef=null, counterListenerSet=false;
+    function setupLiveCounter(){
+      try{
+        if(!counterRef){ counterRef = firebase.database().ref('counter'); }
+        if(!counterListenerSet){
+          counterRef.on('value', (s)=> setCountersText(s.val()||0), (e)=>{ console.warn('counter listener', e); });
+          counterListenerSet=true;
+        }
+      }catch(e){ console.warn('setupLiveCounter error', e); }
+    }
+
     try{
       if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+      // attach live counter immediately (reads are public)
+      setupLiveCounter();
       firebase.auth().onAuthStateChanged(u=>{
-        if(u){ firebaseReady=true; }
-        else { firebase.auth().signInAnonymously().catch(console.warn); }
+        if(u){ firebaseReady=true; setChip(authChip, '','احراز هویت ناشناس: انجام شد ✅'); }
+        else { setChip(authChip, 'warn', 'در حال احراز هویت ناشناس…'); firebase.auth().signInAnonymously().catch(e=>{ console.warn(e); setChip(authChip,'err','خطا در احراز هویت ناشناس ❌'); }); }
       });
-    }catch(e){ console.warn('Firebase init error', e); }
+      // probe database
+      firebase.database().ref('/').limitToFirst(1).once('value').then(()=>{
+        setChip(dbChip,'','دیتابیس متصل ✅');
+      }).catch(()=> setChip(dbChip,'err','اتصال دیتابیس: خطا ❌'));
+    }catch(e){ console.warn('Firebase init error', e); setChip(dbChip,'err','Init خطا'); }
+
+    // Stats helpers
+    const statsWelcome=document.getElementById('statsWelcome');
+    function setCountersText(n){
+      const t = typeof n==='number' ? n : 0;
+      statsWelcome.textContent = `تا کنون ${t} نفر از این آزمون استفاده کرده‌اند! 🎉`;
+      const statsRes = document.getElementById('stats');
+      if(statsRes && document.getElementById('result').classList.contains('active')){
+        statsRes.textContent = `🎉 تاکنون ${t} نفر از این آزمون استفاده کرده‌اند!`;
+      }
+    }
+    // detach listener on unload
+    window.addEventListener('beforeunload', ()=>{ try{ counterRef && counterRef.off(); }catch(e){} });
 
     // Confetti
     const cvs=document.getElementById('confetti'), ctx=cvs.getContext('2d');
@@ -287,9 +338,9 @@
         parts.push(`
           <div class="ak-item">
             <div class="ak-q">${i+1}. ${q.text}</div>
-            <div class="chips">
-              <span class="chip ${ok?'ok-chip':'err-chip'}">${ok? '✅ پاسخ شما:':'❌ پاسخ شما:'} ${uaText}</span>
-              <span class="chip ok-chip">✔ پاسخ صحیح: ${caText}</span>
+            <div class="chips-ans">
+              <span class="chip-ans ${ok?'ok-chip':'err-chip'}">${ok? '✅ پاسخ شما:':'❌ پاسخ شما:'} ${uaText}</span>
+              <span class="chip-ans ok-chip">✔ پاسخ صحیح: ${caText}</span>
             </div>
           </div>
         `);
@@ -338,7 +389,7 @@
         const ref=firebase.database().ref('counter');
         await ref.transaction(c=>(c||0)+1);
         const snap=await ref.once('value');
-        document.getElementById('stats').textContent = `🎉 تاکنون ${snap.val()||0} نفر از این آزمون استفاده کرده‌اند!`;
+        setCountersText(snap.val()||0);
       }catch(e){
         console.error(e);
         document.getElementById('stats').textContent='آمار در دسترس نیست.';
