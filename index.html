@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+در Authentication → Sign-in method مطمئن شو Anonymous روی Enable هست.<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>آزمون زبان انگلیسی | شمارندهٔ زنده + آمار و وضعیت + پاسخ‌نامه</title>
+  <title>آزمون انگلیسی | Live Counter + Debug</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
   <style>
     :root{
@@ -14,7 +14,6 @@
       --option:#f7f8ff; --option-hover:#eef2ff; --option-selected:#f0f4ff;
       --shadow: 0 30px 80px rgba(21, 29, 63, .18);
       --border: rgba(106,90,205,.12);
-      --ok:#10b981; --err:#ef4444;
       --overlay: rgba(15,23,42,.45);
       --chipBg: rgba(255,255,255,.85);
       --chipText: #1f2a37;
@@ -74,15 +73,12 @@
            background: linear-gradient(90deg, #0ea5e9, #8b5cf6); box-shadow: 0 12px 28px rgba(139,92,246,.35) }
     .muted{ color:var(--muted) }
     #confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
-
-    /* chips (welcome status) */
     .chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px }
     .chip{ background: var(--chipBg); color: var(--chipText); border:1px solid var(--border); border-radius:999px; padding:8px 12px; font-size:13px; box-shadow: 0 6px 16px rgba(0,0,0,.06) }
     .chip.warn{ opacity:.9 }
     .chip.err{ background: rgba(239,68,68,.12); color:#991b1b; border-color: rgba(239,68,68,.35) }
     body.dark .chip.err{ color:#ffd1d1 }
-
-    /* MODAL (Answer Key) */
+    /* MODAL */
     .modal-wrap{ position:fixed; inset:0; z-index:4; display:none; align-items:center; justify-content:center; }
     .modal-wrap.open{ display:flex; }
     .backdrop{ position:absolute; inset:0; background: var(--overlay); backdrop-filter: blur(8px) saturate(1.1); opacity:0; animation:fIn .18s ease forwards }
@@ -110,10 +106,8 @@
 </head>
 <body>
   <canvas id="confetti"></canvas>
-
   <div id="appWrap">
     <button class="toggle" id="themeToggle" title="تغییر تم" aria-label="تغییر تم">🌞</button>
-
     <!-- WELCOME -->
     <section id="welcome" class="card screen active" aria-live="polite">
       <div class="icon" aria-hidden="true">📚</div>
@@ -124,11 +118,24 @@
         <span id="authChip" class="chip warn">در حال احراز هویت ناشناس…</span>
         <span id="dbChip" class="chip warn">بررسی اتصال دیتابیس…</span>
       </div>
+      <!-- Debug Panel (اختیاری با ?debug=1) -->
+      <div id="debugPanel" style="display:none; text-align:right; direction:rtl; margin-top:14px">
+        <details style="background:var(--option); border:1px solid var(--border); border-radius:16px; padding:10px">
+          <summary style="cursor:pointer; font-weight:800">🛠️ جزئیات عیب‌یابی</summary>
+          <div style="font-size:13px; margin-top:8px; line-height:1.9">
+            <div>Origin: <code id="dbg-origin"></code></div>
+            <div>Auth Domain: <code id="dbg-authDomain"></code></div>
+            <div>Project ID: <code id="dbg-project"></code></div>
+            <div>DB URL: <code id="dbg-db"></code></div>
+            <div>Auth State: <code id="dbg-auth"></code></div>
+            <div>آخرین خطا: <code id="dbg-last"></code></div>
+          </div>
+        </details>
+      </div>
       <div style="margin-top:16px">
         <button class="btn" id="startBtn">🌸 شروع آزمون</button>
       </div>
     </section>
-
     <!-- QUIZ -->
     <section id="quiz" class="card screen" aria-live="polite">
       <div class="progress">
@@ -141,7 +148,6 @@
         <button class="btn" id="nextBtn" disabled>بعدی ➝</button>
       </div>
     </section>
-
     <!-- RESULT -->
     <section id="result" class="card screen" aria-live="polite">
       <div class="icon" aria-hidden="true">✨</div>
@@ -155,8 +161,7 @@
       </div>
     </section>
   </div>
-
-  <!-- MODAL Answer Key -->
+  <!-- MODAL -->
   <div class="modal-wrap" id="akModal" aria-hidden="true" role="dialog" aria-labelledby="akTitle">
     <div class="backdrop" id="akBackdrop"></div>
     <div class="modal" role="document" aria-modal="true">
@@ -164,18 +169,31 @@
         <h3 id="akTitle">پاسخ‌نامه آزمون</h3>
         <button class="close" id="akClose" aria-label="بستن">✕</button>
       </header>
-      <div class="body" id="akBody">
-        <div id="akItems"></div>
-      </div>
+      <div class="body" id="akBody"><div id="akItems"></div></div>
     </div>
   </div>
-
   <script>
     // Theme
     const toggle=document.getElementById('themeToggle');
     function applyTheme(){ const saved=localStorage.getItem('theme')||'light'; document.body.classList.toggle('dark', saved==='dark'); toggle.textContent = saved==='dark'?'🌙':'🌞'; }
     toggle.onclick=()=>{ const isDark=document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark?'dark':'light'); applyTheme(); };
     applyTheme();
+
+    // Debug flags / panel
+    const urlParams = new URLSearchParams(location.search);
+    const DEBUG_MODE = urlParams.get('debug') === '1';
+    const dbg = {
+      p: document.getElementById('debugPanel'),
+      origin: document.getElementById('dbg-origin'),
+      authDomain: document.getElementById('dbg-authDomain'),
+      project: document.getElementById('dbg-project'),
+      db: document.getElementById('dbg-db'),
+      auth: document.getElementById('dbg-auth'),
+      last: document.getElementById('dbg-last'),
+      show(){ if(this.p) this.p.style.display='block'; },
+      set(k,v){ if(this[k]) this[k].textContent = v ?? '-'; }
+    };
+    if (DEBUG_MODE) dbg.show();
 
     // Firebase
     const firebaseConfig={
@@ -192,33 +210,25 @@
     const dbChip=document.getElementById('dbChip');
     function setChip(el, state, text){ el.className='chip'+(state?(' '+state):''); el.textContent=text; }
 
-    let counterRef=null, counterListenerSet=false;
-    function setupLiveCounter(){
-      try{
-        if(!counterRef){ counterRef = firebase.database().ref('counter'); }
-        if(!counterListenerSet){
-          counterRef.on('value', (s)=> setCountersText(s.val()||0), (e)=>{ console.warn('counter listener', e); });
-          counterListenerSet=true;
-        }
-      }catch(e){ console.warn('setupLiveCounter error', e); }
+    function explainAuthError(code){
+      switch(code){
+        case 'auth/unauthorized-domain':
+          return 'دامنه مجاز نیست؛ در Firebase → Authentication → Authorized domains دامنه سایت (github.io) را اضافه کنید.';
+        case 'auth/operation-not-allowed':
+          return 'Provider ناشناس فعال نیست؛ در Authentication → Sign-in method گزینه Anonymous را Enable کنید.';
+        case 'auth/network-request-failed':
+          return 'مشکل شبکه/VPN/AdBlock یا مسدود شدن دامنه‌های گوگل. VPN/AdBlock را خاموش یا شبکه را عوض کنید.';
+        case 'auth/too-many-requests':
+          return 'درخواست‌های زیاد یا محدودیت موقت؛ چند دقیقه بعد دوباره تلاش کنید.';
+        case 'auth/internal-error':
+          return 'خطای داخلی سرویس؛ رفرش کنید یا بعداً تلاش کنید.';
+        default: return 'خطای احراز هویت ('+code+')';
+      }
     }
 
-    try{
-      if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
-      // attach live counter immediately (reads are public)
-      setupLiveCounter();
-      firebase.auth().onAuthStateChanged(u=>{
-        if(u){ firebaseReady=true; setChip(authChip, '','احراز هویت ناشناس: انجام شد ✅'); }
-        else { setChip(authChip, 'warn', 'در حال احراز هویت ناشناس…'); firebase.auth().signInAnonymously().catch(e=>{ console.warn(e); setChip(authChip,'err','خطا در احراز هویت ناشناس ❌'); }); }
-      });
-      // probe database
-      firebase.database().ref('/').limitToFirst(1).once('value').then(()=>{
-        setChip(dbChip,'','دیتابیس متصل ✅');
-      }).catch(()=> setChip(dbChip,'err','اتصال دیتابیس: خطا ❌'));
-    }catch(e){ console.warn('Firebase init error', e); setChip(dbChip,'err','Init خطا'); }
-
-    // Stats helpers
+    // Live counter
     const statsWelcome=document.getElementById('statsWelcome');
+    let counterRef=null, counterListenerSet=false;
     function setCountersText(n){
       const t = typeof n==='number' ? n : 0;
       statsWelcome.textContent = `تا کنون ${t} نفر از این آزمون استفاده کرده‌اند! 🎉`;
@@ -227,8 +237,58 @@
         statsRes.textContent = `🎉 تاکنون ${t} نفر از این آزمون استفاده کرده‌اند!`;
       }
     }
-    // detach listener on unload
+    function setupLiveCounter(){
+      try{
+        if(!counterRef){ counterRef = firebase.database().ref('counter'); }
+        if(!counterListenerSet){
+          counterRef.on('value', s=>setCountersText(s.val()||0), e=>{ if(DEBUG_MODE) console.warn('counter listener', e); });
+          counterListenerSet=true;
+        }
+      }catch(e){ if(DEBUG_MODE) console.warn('setupLiveCounter error', e); }
+    }
     window.addEventListener('beforeunload', ()=>{ try{ counterRef && counterRef.off(); }catch(e){} });
+
+    try{
+      if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+      if (DEBUG_MODE){
+        dbg.set('origin', location.origin);
+        dbg.set('authDomain', firebaseConfig.authDomain);
+        dbg.set('project', firebaseConfig.projectId);
+        dbg.set('db', firebaseConfig.databaseURL);
+      }
+      setupLiveCounter();
+
+      firebase.auth().onAuthStateChanged(u=>{
+        if(u){
+          firebaseReady=true;
+          setChip(authChip,'','احراز هویت ناشناس: انجام شد ✅');
+          DEBUG_MODE && dbg.set('auth','signed-in (anonymous)');
+        }else{
+          setChip(authChip,'warn','در حال احراز هویت ناشناس…');
+          firebase.auth().signInAnonymously().catch(err=>{
+            const msg = explainAuthError(err.code);
+            setChip(authChip,'err','خطا در احراز هویت ناشناس ❌');
+            DEBUG_MODE && dbg.set('last', err.code+' – '+msg);
+            if (DEBUG_MODE) console.warn('Auth error:', err, msg);
+          });
+        }
+      }, err=>{
+        const msg = explainAuthError(err.code);
+        setChip(authChip,'err','خطا در احراز هویت ناشناس ❌');
+        DEBUG_MODE && dbg.set('last', err.code+' – '+msg);
+      });
+
+      firebase.database().ref('/').limitToFirst(1).once('value')
+        .then(()=> setChip(dbChip,'','دیتابیس متصل ✅'))
+        .catch(err=>{
+          setChip(dbChip,'err','اتصال دیتابیس: خطا ❌');
+          DEBUG_MODE && dbg.set('last', (err.code||'db-error')+' – خطا در اتصال دیتابیس');
+        });
+
+    }catch(e){
+      setChip(dbChip,'err','Init خطا');
+      DEBUG_MODE && dbg.set('last','init-error: '+(e.message||e));
+    }
 
     // Confetti
     const cvs=document.getElementById('confetti'), ctx=cvs.getContext('2d');
@@ -256,7 +316,6 @@
     const answerKeyBtn=document.getElementById('answerKeyBtn');
     const appWrap=document.getElementById('appWrap');
 
-    // Modal refs
     const modal=document.getElementById('akModal');
     const modalBody=document.getElementById('akBody');
     const modalItems=document.getElementById('akItems');
@@ -271,13 +330,10 @@
       const el=document.getElementById(id); el.classList.add('active');
       el.style.animation='none'; void el.offsetWidth; el.style.animation=null;
     }
-
     function resetForNewRun(){
       current=0; answers.fill(null); finished=false; waitStats=false; navBusy=false;
-      barFill.style.width='0%';
-      closeAK(); // ensure modal closed
+      barFill.style.width='0%'; closeAK();
     }
-
     startBtn.onclick=()=>{ resetForNewRun(); show('quiz'); loadQ(); };
     restartBtn.onclick=()=>{ resetForNewRun(); show('welcome'); };
 
@@ -300,7 +356,6 @@
       });
       nextBtn.disabled = answers[current]===null;
     }
-
     nextBtn.onclick=()=>{
       if(navBusy) return; navBusy=true; nextBtn.disabled=true;
       setTimeout(()=>{
@@ -308,7 +363,6 @@
         else { finish(); }
       }, 50);
     };
-
     function levelFrom(score){
       if(score<=3) return "A1 (مبتدی)";
       if(score<=5) return "A2 (پایه)";
@@ -316,7 +370,6 @@
       if(score<=9) return "B2 (بالاتر از متوسط)";
       return "C1 (پیشرفته)";
     }
-
     async function finish(){
       if(finished) return; finished=true;
       let score=0; for(let i=0;i<questions.length;i++){ if(answers[i]===questions[i].correct) score++; }
@@ -325,8 +378,32 @@
       barFill.style.width='100%'; show('result'); confetti();
       if(await waitAuth()){ updateStats(); } else { waitStats=true; document.getElementById('stats').textContent='در حال انتظار برای اتصال امن…'; }
     }
+    function waitAuth(ms=3500){
+      if(firebaseReady) return Promise.resolve(true);
+      const start=Date.now();
+      return new Promise(res=>{
+        const iv=setInterval(()=>{
+          if(firebaseReady || Date.now()-start>ms){ clearInterval(iv); res(firebaseReady); }
+        },150);
+      });
+    }
+    (function watcher(){
+      const iv=setInterval(()=>{
+        if(firebaseReady && waitStats){ waitStats=false; updateStats(); clearInterval(iv); }
+      }, 300);
+    })();
+    async function updateStats(){
+      try{
+        const ref=firebase.database().ref('counter');
+        await ref.transaction(c=>(c||0)+1);
+        const snap=await ref.once('value');
+        setCountersText(snap.val()||0);
+      }catch(e){
+        console.error(e);
+        document.getElementById('stats').textContent='آمار در دسترس نیست.';
+      }
+    }
 
-    // Modal Answer Key
     function buildAK(){
       const parts=[];
       for(let i=0;i<questions.length;i++){
@@ -348,53 +425,10 @@
       modalItems.innerHTML=parts.join('');
       modalBody.scrollTop=0;
     }
-    function openAK(){
-      buildAK();
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden','false');
-      appWrap.classList.add('blurred');
-      document.body.classList.add('no-scroll');
-      modalClose.focus({preventScroll:true});
-    }
-    function closeAK(){
-      modal.classList.remove('open');
-      modal.setAttribute('aria-hidden','true');
-      appWrap.classList.remove('blurred');
-      document.body.classList.remove('no-scroll');
-    }
-    answerKeyBtn.onclick = openAK;
-    modalClose.onclick = closeAK;
-    modalBackdrop.onclick = closeAK;
-    document.addEventListener('keydown', (e)=>{
-      if(e.key==='Escape' && modal.classList.contains('open')) closeAK();
-    });
-
-    function waitAuth(ms=3500){
-      if(firebaseReady) return Promise.resolve(true);
-      const start=Date.now();
-      return new Promise(res=>{
-        const iv=setInterval(()=>{
-          if(firebaseReady || Date.now()-start>ms){ clearInterval(iv); res(firebaseReady); }
-        },150);
-      });
-    }
-    (function watcher(){
-      const iv=setInterval(()=>{
-        if(firebaseReady && waitStats){ waitStats=false; updateStats(); clearInterval(iv); }
-      }, 300);
-    })();
-
-    async function updateStats(){
-      try{
-        const ref=firebase.database().ref('counter');
-        await ref.transaction(c=>(c||0)+1);
-        const snap=await ref.once('value');
-        setCountersText(snap.val()||0);
-      }catch(e){
-        console.error(e);
-        document.getElementById('stats').textContent='آمار در دسترس نیست.';
-      }
-    }
+    function openAK(){ buildAK(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); appWrap.classList.add('blurred'); document.body.classList.add('no-scroll'); modalClose.focus({preventScroll:true}); }
+    function closeAK(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); appWrap.classList.remove('blurred'); document.body.classList.remove('no-scroll'); }
+    answerKeyBtn.onclick = openAK; modalClose.onclick = closeAK; modalBackdrop.onclick = closeAK;
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeAK(); });
   </script>
 </body>
 </html>
