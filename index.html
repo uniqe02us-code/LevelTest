@@ -140,7 +140,7 @@
   <main id="appWrap">
     <section id="welcome" class="card screen active" aria-live="polite">
       <div class="icon" aria-hidden="true">📚</div>
-      <h1>به آزمون زبان انگلیسی خوش آمدید!</h1>
+      <h1>به آزمون زبان انگلیسی فاش انگلیش خوش آمدید!</h1>
       <p class="lead">در این فضای آرام، سطح زبان خود را کشف کنید.<br>۱۰ سؤال هوشمندانه — بدون استرس، با لذت.</p>
       <p class="muted" id="statsWelcome">در حال آماده‌سازی آمار…</p>
       <div class="chips">
@@ -345,4 +345,5 @@
     async function finish(){ if(finished) return; finished=true; let score=0; for(let i=0;i<questions.length;i++) if(answers[i]===questions[i].correct) score++; document.getElementById('result-text').innerHTML=`امتیاز شما: <b>${score}</b> از 10`; document.getElementById('level-display').innerHTML=`<span class='pill'>${levelFrom(score)}</span>`; barFill.style.width='100%'; show('result'); confetti(); if(await waitAuth()) updateStats(); else { const el=document.getElementById('stats'); if(el) el.textContent='در حال انتظار برای اتصال امن…'; waitStats=true; } }
   </script>
 </body>
+
 </html>
